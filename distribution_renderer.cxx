@@ -2,6 +2,7 @@
 
 #include "distribution.frag.h"
 #include "distribution.vert.h"
+#include "mixture.h"
 
 DistributionRenderer::DistributionRenderer() {
   // Create VAO and VBO
@@ -50,8 +51,27 @@ DistributionRenderer::DistributionRenderer() {
   m_minUniform = glGetUniformLocation(m_program, "uMin");
   m_maxUniform = glGetUniformLocation(m_program, "uMax");
 
+  // Bind uniform block index to binding 0
+  GLuint blockIdx = glGetUniformBlockIndex(m_program, "MixtureBlock");
+  if (blockIdx != GL_INVALID_INDEX) {
+    glUniformBlockBinding(m_program, blockIdx, 0);
+  }
+
+  // Create Mixture UBO
+  glGenBuffers(1, &m_mogUBO);
+  glBindBuffer(GL_UNIFORM_BUFFER, m_mogUBO);
+  glBufferData(GL_UNIFORM_BUFFER, sizeof(MixtureOfGaussians), nullptr, GL_DYNAMIC_DRAW);
+  glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_mogUBO);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
   glBindVertexArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void DistributionRenderer::SetMixture(const MixtureOfGaussians &m) {
+  glBindBuffer(GL_UNIFORM_BUFFER, m_mogUBO);
+  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(MixtureOfGaussians), &m);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void DistributionRenderer::Render(Viewport particleViewport,
@@ -69,6 +89,9 @@ void DistributionRenderer::Render(Viewport particleViewport,
   glUniform2f(m_minUniform, particleViewport.pmin.x, particleViewport.pmin.y);
   glUniform2f(m_maxUniform, particleViewport.pmax.x, particleViewport.pmax.y);
 
+  // Bind mixture UBO at binding=0
+  glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_mogUBO);
+
   glDrawArrays(GL_TRIANGLES, 0, 6);
 
   glBindVertexArray(0);
@@ -81,4 +104,5 @@ DistributionRenderer::~DistributionRenderer() {
   glDeleteProgram(m_program);
   glDeleteShader(m_vertShader);
   glDeleteShader(m_fragShader);
+  glDeleteBuffers(1, &m_mogUBO);
 }

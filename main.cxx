@@ -5,11 +5,13 @@
 #include "imgui_impl_sdl2.h"
 #include "particle_renderer.h"
 #include "simulation.h"
+#include "mixture.h"
 
 #include <GL/glew.h>
 #include <SDL.h>
 #include <SDL_opengl.h>
 #include <stdio.h>
+#include <cmath>
 
 // Main code
 int main(int, char **) {
@@ -90,6 +92,21 @@ int main(int, char **) {
   ParticleRenderer particleRenderer{};
   DistributionRenderer distributionRenderer{};
   EstimatedDistributionRenderer estimatedDistributionRenderer{};
+
+  // Initialize default mixture of Gaussians (4 components)
+  MixtureOfGaussians mog{};
+  mog.count = 4;
+  mog.g[0] = Gaussian{ glm::vec2(-0.5f, -0.5f), glm::vec2(0.1f, 0.1f) };
+  mog.g[1] = Gaussian{ glm::vec2( 0.5f,  0.5f), glm::vec2(0.1f, 0.1f) };
+  mog.g[2] = Gaussian{ glm::vec2(-0.5f,  0.5f), glm::vec2(0.1f, 0.1f) };
+  mog.g[3] = Gaussian{ glm::vec2( 0.5f, -0.5f), glm::vec2(0.1f, 0.1f) };
+
+  // Compute and store mixture peak on CPU
+  mog.UpdatePeak();
+
+  simulation.SetMixture(mog);
+  distributionRenderer.SetMixture(mog);
+  estimatedDistributionRenderer.SetMixture(mog);
 
   // Our state
   ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);

@@ -5,6 +5,13 @@ in vec2 aXY;
 
 #define TWO_PI 6.283185307179586
 
+struct Gaussian { vec2 mean; vec2 sigma; };
+layout(std140) uniform MixtureBlock {
+  int uCount;
+  float uPeak;
+  Gaussian uGaussians[10];
+};
+
 vec3 colormap(float x) {
   vec4 kRedVec4 = vec4(0.13572138, 4.61539260, -42.66032258, 132.13108234);
   vec4 kGreenVec4 = vec4(0.09140261, 2.19418839, 4.84296658, -14.18503333);
@@ -23,29 +30,28 @@ vec3 colormap(float x) {
   );
 }
 
-float gaussian(vec2 pos, vec2 mean, float sigma) {
-  return (1.0 / (TWO_PI * sigma * sigma)) *
-         exp(-dot(pos - mean, pos - mean) / (2 * sigma * sigma));
+float gaussian(vec2 pos, vec2 mean, vec2 sigma) {
+  vec2 d = pos - mean;
+  vec2 s2 = sigma * sigma;
+  float expo = -0.5 * (d.x * d.x / s2.x + d.y * d.y / s2.y);
+  return exp(expo) / (TWO_PI * sigma.x * sigma.y);
 }
 
 float mixture_of_gaussians(vec2 pos) {
-  vec2 means[4] = vec2[](vec2(-0.5, -0.5), vec2(0.5, 0.5), vec2(-0.5, 0.5),
-                         vec2(0.5, -0.5));
-
-  float sigmas[4] = float[](0.1, 0.1, 0.1, 0.1);
-
-  return 0.25 * (gaussian(pos, means[0], sigmas[0]) +
-                 gaussian(pos, means[1], sigmas[1]) +
-                 gaussian(pos, means[2], sigmas[2]) +
-                 gaussian(pos, means[3], sigmas[3]));
+  if (uCount <= 0) return 0.0;
+  float sum = 0.0;
+  for (int i = 0; i < uCount; ++i) {
+    sum += gaussian(pos, uGaussians[i].mean, uGaussians[i].sigma);
+  }
+  return sum / float(uCount);
 }
 
 void main() {
-  float peak = mixture_of_gaussians(vec2(0.5, 0.5));
+  float peak = uPeak;
   float prob = mixture_of_gaussians(aXY);
 
   // Gamma correction style
-  float t = pow(prob / peak, 0.5);
+  float t = pow(prob / max(peak, 1e-8), 0.5);
 
   FragColor = vec4(colormap(t), 1.0);
 }

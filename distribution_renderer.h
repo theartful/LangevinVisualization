@@ -3,6 +3,7 @@
 #include <GL/glew.h>
 
 #include "utils.h"
+#include "mixture.h"
 
 class DistributionRenderer {
 public:
@@ -10,6 +11,7 @@ public:
   ~DistributionRenderer();
 
   void Render(Viewport particleViewport, Viewport pixelViewport);
+  void SetMixture(const MixtureOfGaussians &m);
 
 private:
   GLuint m_quadVAO;
@@ -21,4 +23,6 @@ private:
 
   GLint m_minUniform;
   GLint m_maxUniform;
+
+  GLuint m_mogUBO;
 };

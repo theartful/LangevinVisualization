@@ -5,6 +5,7 @@
 #include "estimated_distribution.frag.h"
 #include "estimated_distribution.vert.h"
 #include "utils.h"
+#include "mixture.h"
 
 static constexpr size_t kWidth = 200;
 static constexpr size_t kHeight = 200;
@@ -134,6 +135,7 @@ void EstimatedDistributionRenderer::CreateRendererProgram() {
   m_renderNumParticlesUniform =
       glGetUniformLocation(m_renderProgram, "uNumParticles");
   m_renderAreaUniform = glGetUniformLocation(m_renderProgram, "uArea");
+  m_renderPeakUniform = glGetUniformLocation(m_renderProgram, "uPeak");
 
   glBindVertexArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -148,6 +150,12 @@ void EstimatedDistributionRenderer::Render(Viewport particleViewport,
              particlesTexture);
 
   DoRender(particleViewport, pixelViewport, particlesWidth * particlesHeight);
+}
+
+void EstimatedDistributionRenderer::SetMixture(const MixtureOfGaussians &m) {
+  glUseProgram(m_renderProgram);
+  glUniform1f(m_renderPeakUniform, m.peak);
+  glUseProgram(0);
 }
 
 void EstimatedDistributionRenderer::Accumulate(Viewport particleViewport,

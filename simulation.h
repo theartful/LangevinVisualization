@@ -4,12 +4,15 @@
 #include <glm/glm.hpp>
 #include <vector>
 
+#include "mixture.h"
+
 class Simulation {
 public:
   Simulation();
   ~Simulation();
 
   void Update();
+  void SetMixture(const MixtureOfGaussians &m);
 
   size_t Width();
   size_t Height();
@@ -34,4 +37,6 @@ private:
   int m_particlesUniform;
   int m_step;
   std::vector<glm::vec2> m_particles;
+
+  GLuint m_mogUBO;
 };

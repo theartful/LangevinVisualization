@@ -7,6 +7,16 @@ uniform uint uFrameId;
 
 #define TWO_PI 6.283185307179586
 
+struct Gaussian {
+  vec2 mean;
+  vec2 sigma;
+};
+layout(std140) uniform MixtureBlock {
+  int uCount;
+  float uPeak;
+  Gaussian uGaussians[10];
+};
+
 uint rng = 0u;
 
 uint murmur_hash3_mix(uint hash, uint k) {
@@ -64,37 +74,24 @@ vec2 sample_gaussian(vec2 u, float mean, float standardDeviation) {
   return vec2(cos(b), sin(b)) * a + mean;
 }
 
-vec2 gaussian_score(vec2 pos, vec2 mean, float sigma) {
+vec2 gaussian_score(vec2 pos, vec2 mean, vec2 sigma) {
   return (mean - pos) / (sigma * sigma);
 }
 
-float gaussian(vec2 pos, vec2 mean, float sigma) {
-  return (1.0 / (TWO_PI * sigma * sigma)) *
-         exp(-dot(pos - mean, pos - mean) / (2 * sigma * sigma));
+float gaussian(vec2 pos, vec2 mean, vec2 sigma) {
+  vec2 d = (pos - mean) / sigma;
+  return exp(-0.5 * dot(d, d)) / (TWO_PI * sigma.x * sigma.y);
 }
 
 vec2 mixture_of_gaussian_score(vec2 pos) {
-  vec2 means[4] = vec2[](
-      vec2(-0.5, -0.5),
-      vec2(0.5, 0.5),
-      vec2(-0.5, 0.5),
-      vec2(0.5, -0.5)
-  );
-  float sigmas[4] = float[](0.1, 0.1, 0.1, 0.1);
-
-  float probs[4] = float[](
-      gaussian(pos, means[0], sigmas[0]),
-      gaussian(pos, means[1], sigmas[1]),
-      gaussian(pos, means[2], sigmas[2]),
-      gaussian(pos, means[3], sigmas[3])
-  );
-
-  float sum_probs = probs[0] + probs[1] + probs[2] + probs[3];
-  return (gaussian_score(pos, means[0], sigmas[0]) * probs[0] +
-          gaussian_score(pos, means[1], sigmas[1]) * probs[1] +
-          gaussian_score(pos, means[2], sigmas[2]) * probs[2] +
-          gaussian_score(pos, means[3], sigmas[3]) * probs[3]) /
-         sum_probs;
+  float wsum = 0.0;
+  vec2 num = vec2(0.0);
+  for (int i = 0; i < uCount; ++i) {
+    float w = gaussian(pos, uGaussians[i].mean, uGaussians[i].sigma);
+    num += w * gaussian_score(pos, uGaussians[i].mean, uGaussians[i].sigma);
+    wsum += w;
+  }
+  return (wsum > 0.0) ? num / wsum : vec2(0.0);
 }
 
 void main() {
@@ -107,5 +104,6 @@ void main() {
   vec2 u = vec2(lcg_randomf(), lcg_randomf());
   vec2 w = vec2(sample_gaussian(u, 0, 1.0));
 
-  ParticlePosition = pos + dt * mixture_of_gaussian_score(pos) + sqrt(2 * dt) * w;
+  ParticlePosition =
+      pos + dt * mixture_of_gaussian_score(pos) + sqrt(2 * dt) * w;
 }

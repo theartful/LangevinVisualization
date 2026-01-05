@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 
 #include "utils.h"
+#include "mixture.h"
 
 class EstimatedDistributionRenderer {
 public:
@@ -12,6 +13,7 @@ public:
 
   void Render(Viewport particleViewport, Viewport pixelViewport,
               int particlesWidth, int particlesHeight, GLuint particlesTexture);
+  void SetMixture(const MixtureOfGaussians &m);
 
 private:
   void CreateAccumulatorProgram();
@@ -49,4 +51,5 @@ private:
   GLint m_renderAccumUniform;
   GLint m_renderNumParticlesUniform;
   GLint m_renderAreaUniform;
+  GLint m_renderPeakUniform;
 };

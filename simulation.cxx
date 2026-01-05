@@ -3,6 +3,7 @@
 #include "simulation.frag.h"
 #include "simulation.vert.h"
 #include "utils.h"
+#include "mixture.h"
 
 #include <cstdlib>
 #include <stdexcept>
@@ -60,6 +61,19 @@ Simulation::Simulation() : m_step(0) {
   m_frameIdUniform = glGetUniformLocation(m_program, "uFrameId");
   m_particlesUniform = glGetUniformLocation(m_program, "uParticles");
 
+  // Bind uniform block index to binding 0
+  GLuint blockIdx = glGetUniformBlockIndex(m_program, "MixtureBlock");
+  if (blockIdx != GL_INVALID_INDEX) {
+    glUniformBlockBinding(m_program, blockIdx, 0);
+  }
+
+  // Create Mixture UBO
+  glGenBuffers(1, &m_mogUBO);
+  glBindBuffer(GL_UNIFORM_BUFFER, m_mogUBO);
+  glBufferData(GL_UNIFORM_BUFFER, sizeof(MixtureOfGaussians), nullptr, GL_DYNAMIC_DRAW);
+  glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_mogUBO);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
   glBindVertexArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -108,6 +122,12 @@ void Simulation::InitializeParticles() {
   }
 }
 
+void Simulation::SetMixture(const MixtureOfGaussians &m) {
+  glBindBuffer(GL_UNIFORM_BUFFER, m_mogUBO);
+  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(MixtureOfGaussians), &m);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
 void Simulation::Update() {
   m_step++;
 
@@ -125,6 +145,9 @@ void Simulation::Update() {
 
   glUniform1ui(m_frameIdUniform, m_step);
 
+  // Bind mixture UBO at binding=0
+  glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_mogUBO);
+
   glBindFramebuffer(GL_FRAMEBUFFER, m_fbos[bong]);
   glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -140,6 +163,7 @@ Simulation::~Simulation() {
   glDeleteProgram(m_program);
   glDeleteShader(m_vertShader);
   glDeleteShader(m_fragShader);
+  glDeleteBuffers(1, &m_mogUBO);
 }
 
 size_t Simulation::Width() { return kWidth; }
