@@ -6,7 +6,6 @@ uniform sampler2D uParticles;
 uniform uint uFrameId;
 
 #define TWO_PI 6.283185307179586
-#define PI
 
 uint rng = 0u;
 

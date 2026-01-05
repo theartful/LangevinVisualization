@@ -24,15 +24,33 @@ add_custom_command(
              ${CMAKE_BINARY_DIR}/shaders/simulation.vert.h
              ${CMAKE_BINARY_DIR}/shaders/particle.frag.h
              ${CMAKE_BINARY_DIR}/shaders/particle.vert.h
+             ${CMAKE_BINARY_DIR}/shaders/distribution.frag.h
+             ${CMAKE_BINARY_DIR}/shaders/distribution.vert.h
+             ${CMAKE_BINARY_DIR}/shaders/accumulator.frag.h
+             ${CMAKE_BINARY_DIR}/shaders/accumulator.vert.h
+             ${CMAKE_BINARY_DIR}/shaders/estimated_distribution.frag.h
+             ${CMAKE_BINARY_DIR}/shaders/estimated_distribution.vert.h
     DEPENDS  ${CMAKE_SOURCE_DIR}/shaders/simulation.frag
              ${CMAKE_SOURCE_DIR}/shaders/simulation.vert
              ${CMAKE_SOURCE_DIR}/shaders/particle.frag
              ${CMAKE_SOURCE_DIR}/shaders/particle.vert
+             ${CMAKE_SOURCE_DIR}/shaders/distribution.frag
+             ${CMAKE_SOURCE_DIR}/shaders/distribution.vert
+             ${CMAKE_SOURCE_DIR}/shaders/accumulator.frag
+             ${CMAKE_SOURCE_DIR}/shaders/accumulator.vert
+             ${CMAKE_SOURCE_DIR}/shaders/estimated_distribution.frag
+             ${CMAKE_SOURCE_DIR}/shaders/estimated_distribution.vert
     COMMAND mkdir -p ${CMAKE_BINARY_DIR}/shaders
     COMMAND xxd -i -n SimulationFrag ${CMAKE_SOURCE_DIR}/shaders/simulation.frag ${CMAKE_BINARY_DIR}/shaders/simulation.frag.h
     COMMAND xxd -i -n SimulationVert ${CMAKE_SOURCE_DIR}/shaders/simulation.vert ${CMAKE_BINARY_DIR}/shaders/simulation.vert.h
     COMMAND xxd -i -n ParticleFrag ${CMAKE_SOURCE_DIR}/shaders/particle.frag ${CMAKE_BINARY_DIR}/shaders/particle.frag.h
     COMMAND xxd -i -n ParticleVert ${CMAKE_SOURCE_DIR}/shaders/particle.vert ${CMAKE_BINARY_DIR}/shaders/particle.vert.h
+    COMMAND xxd -i -n DistributionFrag ${CMAKE_SOURCE_DIR}/shaders/distribution.frag ${CMAKE_BINARY_DIR}/shaders/distribution.frag.h
+    COMMAND xxd -i -n DistributionVert ${CMAKE_SOURCE_DIR}/shaders/distribution.vert ${CMAKE_BINARY_DIR}/shaders/distribution.vert.h
+    COMMAND xxd -i -n AccumulatorFrag ${CMAKE_SOURCE_DIR}/shaders/accumulator.frag ${CMAKE_BINARY_DIR}/shaders/accumulator.frag.h
+    COMMAND xxd -i -n AccumulatorVert ${CMAKE_SOURCE_DIR}/shaders/accumulator.vert ${CMAKE_BINARY_DIR}/shaders/accumulator.vert.h
+    COMMAND xxd -i -n EstimatedDistributionFrag ${CMAKE_SOURCE_DIR}/shaders/estimated_distribution.frag ${CMAKE_BINARY_DIR}/shaders/estimated_distribution.frag.h
+    COMMAND xxd -i -n EstimatedDistributionVert ${CMAKE_SOURCE_DIR}/shaders/estimated_distribution.vert ${CMAKE_BINARY_DIR}/shaders/estimated_distribution.vert.h
 )
 
 add_executable(Langevin
@@ -41,10 +59,20 @@ add_executable(Langevin
     simulation.cxx
     particle_renderer.h
     particle_renderer.cxx
+    distribution_renderer.h
+    distribution_renderer.cxx
+    estimated_distribution_renderer.h
+    estimated_distribution_renderer.cxx
     ${CMAKE_BINARY_DIR}/shaders/simulation.frag.h
     ${CMAKE_BINARY_DIR}/shaders/simulation.vert.h
     ${CMAKE_BINARY_DIR}/shaders/particle.frag.h
     ${CMAKE_BINARY_DIR}/shaders/particle.vert.h
+    ${CMAKE_BINARY_DIR}/shaders/distribution.frag.h
+    ${CMAKE_BINARY_DIR}/shaders/distribution.vert.h
+    ${CMAKE_BINARY_DIR}/shaders/accumulator.frag.h
+    ${CMAKE_BINARY_DIR}/shaders/accumulator.vert.h
+   ${CMAKE_BINARY_DIR}/shaders/estimated_distribution.frag.h
+   ${CMAKE_BINARY_DIR}/shaders/estimated_distribution.vert.h
 )
 
 target_link_libraries(Langevin

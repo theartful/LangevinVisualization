@@ -43,12 +43,12 @@ ParticleRenderer::ParticleRenderer() {
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void ParticleRenderer::Render(Viewport viewport, int width, int height,
+void ParticleRenderer::Render(Viewport particleViewport, Viewport pixelViewport,
                               int particlesWidth, int particlesHeight,
                               GLuint particlesTexture) {
-  glViewport(0, 0, width, height);
-  glClearColor(0, 0, 0, 0);
-  glClear(GL_COLOR_BUFFER_BIT);
+  glViewport(pixelViewport.pmin.x, pixelViewport.pmin.y, pixelViewport.Width(),
+             pixelViewport.Height());
+
   glEnable(GL_PROGRAM_POINT_SIZE);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -61,8 +61,8 @@ void ParticleRenderer::Render(Viewport viewport, int width, int height,
   glUniform1i(m_particlesUniform, 0);
 
   glUniform1i(m_particlesWidthUniform, particlesWidth);
-  glUniform2f(m_minUniform, viewport.pmin.x, viewport.pmin.y);
-  glUniform2f(m_maxUniform, viewport.pmax.x, viewport.pmax.y);
+  glUniform2f(m_minUniform, particleViewport.pmin.x, particleViewport.pmin.y);
+  glUniform2f(m_maxUniform, particleViewport.pmax.x, particleViewport.pmax.y);
 
   glDrawArrays(GL_POINTS, 0, particlesWidth * particlesHeight);
 

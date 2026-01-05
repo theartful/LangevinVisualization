@@ -1,3 +1,5 @@
+#include "distribution_renderer.h"
+#include "estimated_distribution_renderer.h"
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl2.h"
@@ -85,7 +87,9 @@ int main(int, char **) {
   }
 
   Simulation simulation{};
-  ParticleRenderer renderer{};
+  ParticleRenderer particleRenderer{};
+  DistributionRenderer distributionRenderer{};
+  EstimatedDistributionRenderer estimatedDistributionRenderer{};
 
   // Our state
   ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -122,22 +126,37 @@ int main(int, char **) {
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
 
-    Viewport viewport = {{-1.0, -1.0}, {1.0, 1.0}};
-    if (io.DisplaySize.x > io.DisplaySize.y) {
-      const float aspect_ratio = io.DisplaySize.x / io.DisplaySize.y;
-      viewport.pmin *= glm::vec2(aspect_ratio, 1.0);
-      viewport.pmax *= glm::vec2(aspect_ratio, 1.0);
-    } else {
-      const float aspect_ratio = io.DisplaySize.y / io.DisplaySize.x;
-      viewport.pmin *= glm::vec2(1.0, aspect_ratio);
-      viewport.pmax *= glm::vec2(1.0, aspect_ratio);
-    }
+    simulation.Update();
+
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT);
 
     // Rendering
-    simulation.Update();
-    renderer.Render(viewport, (int)io.DisplaySize.x, (int)io.DisplaySize.y,
-                    simulation.Width(), simulation.Height(),
-                    simulation.ParticlesTexture());
+    {
+      const Viewport particleViewport = {{-1.0, -1.0}, {1.0, 1.0}};
+      const Viewport pixelViewport = {{0, 0},
+                                      {io.DisplaySize.x / 2, io.DisplaySize.y}};
+      const Viewport particleViewportCorretAspect =
+          EnforceAspectRatio(particleViewport, pixelViewport);
+
+      estimatedDistributionRenderer.Render(
+          particleViewportCorretAspect, pixelViewport, simulation.Width(),
+          simulation.Height(), simulation.ParticlesTexture());
+
+      // particleRenderer.Render(particleViewportCorretAspect, pixelViewport,
+      //                         simulation.Width(), simulation.Height(),
+      //                         simulation.ParticlesTexture());
+    }
+
+    {
+      const Viewport particleViewport = {{-1.0, -1.0}, {1.0, 1.0}};
+      const Viewport pixelViewport = {{io.DisplaySize.x / 2, 0},
+                                      {io.DisplaySize.x, io.DisplaySize.y}};
+      const Viewport particleViewportCorretAspect =
+          EnforceAspectRatio(particleViewport, pixelViewport);
+
+      distributionRenderer.Render(particleViewportCorretAspect, pixelViewport);
+    }
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

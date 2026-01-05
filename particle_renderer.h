@@ -3,17 +3,14 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
-struct Viewport {
-  glm::vec2 pmin;
-  glm::vec2 pmax;
-};
+#include "utils.h"
 
 class ParticleRenderer {
 public:
   ParticleRenderer();
 
-  void Render(Viewport viewport, int width, int height, int particlesWidth,
-              int particlesHeight, GLuint particlesTexture);
+  void Render(Viewport particleViewport, Viewport pixelViewport,
+              int particlesWidth, int particlesHeight, GLuint particlesTexture);
 
 private:
   GLuint m_vao;
