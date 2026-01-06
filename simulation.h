@@ -13,6 +13,7 @@ public:
 
   void Update();
   void SetMixture(const MixtureOfGaussians &m);
+  void SetDt(float dt);
 
   size_t Width();
   size_t Height();
@@ -35,6 +36,8 @@ private:
 
   int m_frameIdUniform;
   int m_particlesUniform;
+  int m_dtUniform;
+  float m_dt;
   int m_step;
   std::vector<glm::vec2> m_particles;
 

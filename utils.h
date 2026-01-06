@@ -12,6 +12,8 @@ struct Viewport {
 
   float Width() { return pmax.x - pmin.x; }
   float Height() { return pmax.y - pmin.y; }
+
+  glm::vec2 Center() { return 0.5f * (pmin + pmax); }
 };
 
 static Viewport EnforceAspectRatio(Viewport particleViewport,
@@ -21,14 +23,18 @@ static Viewport EnforceAspectRatio(Viewport particleViewport,
 
   Viewport result = particleViewport;
 
+  const glm::vec2 center = particleViewport.Center();
+
   if (width > height) {
     const float aspect_ratio = width / height;
-    result.pmin *= glm::vec2(aspect_ratio, 1.0);
-    result.pmax *= glm::vec2(aspect_ratio, 1.0);
+    const float correct_width = particleViewport.Height() * aspect_ratio;
+    result.pmin.x = center.x - correct_width / 2.0;
+    result.pmax.x = center.x + correct_width / 2.0;
   } else {
     const float aspect_ratio = height / width;
-    result.pmin *= glm::vec2(1.0, aspect_ratio);
-    result.pmax *= glm::vec2(1.0, aspect_ratio);
+    const float correct_height = particleViewport.Width() * aspect_ratio;
+    result.pmin.y = center.y - correct_height / 2.0;
+    result.pmax.y = center.y + correct_height / 2.0;
   }
 
   return result;

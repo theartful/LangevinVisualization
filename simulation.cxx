@@ -14,7 +14,7 @@ static constexpr size_t kWidth = 1920;
 static constexpr size_t kHeight = 1080;
 static constexpr size_t kNumParticles = kWidth * kHeight;
 
-Simulation::Simulation() : m_step(0) {
+Simulation::Simulation() : m_step(0), m_dt(0.00004f) {
   // Create VAO and VBO
   glGenVertexArrays(1, &m_quadVAO);
   glBindVertexArray(m_quadVAO);
@@ -60,6 +60,7 @@ Simulation::Simulation() : m_step(0) {
 
   m_frameIdUniform = glGetUniformLocation(m_program, "uFrameId");
   m_particlesUniform = glGetUniformLocation(m_program, "uParticles");
+  m_dtUniform = glGetUniformLocation(m_program, "uDt");
 
   // Bind uniform block index to binding 0
   GLuint blockIdx = glGetUniformBlockIndex(m_program, "MixtureBlock");
@@ -128,6 +129,8 @@ void Simulation::SetMixture(const MixtureOfGaussians &m) {
   glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
+void Simulation::SetDt(float dt) { m_dt = dt; }
+
 void Simulation::Update() {
   m_step++;
 
@@ -144,6 +147,7 @@ void Simulation::Update() {
   glUniform1i(m_particlesUniform, 0);
 
   glUniform1ui(m_frameIdUniform, m_step);
+  glUniform1f(m_dtUniform, m_dt);
 
   // Bind mixture UBO at binding=0
   glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_mogUBO);

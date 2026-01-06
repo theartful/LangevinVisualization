@@ -4,6 +4,7 @@ layout(location = 0) out vec2 ParticlePosition;
 
 uniform sampler2D uParticles;
 uniform uint uFrameId;
+uniform float uDt;
 
 #define TWO_PI 6.283185307179586
 
@@ -99,7 +100,7 @@ void main() {
 
   vec2 pos = texelFetch(uParticles, ivec2(gl_FragCoord.xy), 0).xy;
 
-  float dt = 0.00004;
+  float dt = uDt;
 
   vec2 u = vec2(lcg_randomf(), lcg_randomf());
   vec2 w = vec2(sample_gaussian(u, 0, 1.0));

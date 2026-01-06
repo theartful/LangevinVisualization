@@ -3,15 +3,15 @@
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl2.h"
+#include "mixture.h"
 #include "particle_renderer.h"
 #include "simulation.h"
-#include "mixture.h"
 
 #include <GL/glew.h>
 #include <SDL.h>
 #include <SDL_opengl.h>
-#include <stdio.h>
 #include <cmath>
+#include <stdio.h>
 
 // Main code
 int main(int, char **) {
@@ -96,10 +96,10 @@ int main(int, char **) {
   // Initialize default mixture of Gaussians (4 components)
   MixtureOfGaussians mog{};
   mog.count = 4;
-  mog.g[0] = Gaussian{ glm::vec2(-0.5f, -0.5f), glm::vec2(0.1f, 0.1f) };
-  mog.g[1] = Gaussian{ glm::vec2( 0.5f,  0.5f), glm::vec2(0.1f, 0.1f) };
-  mog.g[2] = Gaussian{ glm::vec2(-0.5f,  0.5f), glm::vec2(0.1f, 0.1f) };
-  mog.g[3] = Gaussian{ glm::vec2( 0.5f, -0.5f), glm::vec2(0.1f, 0.1f) };
+  mog.g[0] = Gaussian{glm::vec2(-0.5f, -0.5f), glm::vec2(0.1f, 0.1f)};
+  mog.g[1] = Gaussian{glm::vec2(0.5f, 0.5f), glm::vec2(0.1f, 0.1f)};
+  mog.g[2] = Gaussian{glm::vec2(-0.5f, 0.5f), glm::vec2(0.1f, 0.1f)};
+  mog.g[3] = Gaussian{glm::vec2(0.5f, -0.5f), glm::vec2(0.1f, 0.1f)};
 
   // Compute and store mixture peak on CPU
   mog.UpdatePeak();
@@ -110,6 +110,9 @@ int main(int, char **) {
 
   // Our state
   ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+  float dt = 0.00004f;
+  glm::vec2 viewCenter(0.0f, 0.0f);
+  float viewScale = 1.0f; // half-extent before aspect correction
 
   // Main loop
   bool done = false;
@@ -143,6 +146,60 @@ int main(int, char **) {
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
 
+    // Controls panel: Mixture and Simulation
+    bool mixture_changed = false;
+    if (ImGui::Begin("Controls")) {
+      ImGui::SeparatorText("Mixture");
+      // Count
+      int prev_count = mog.count;
+      if (ImGui::SliderInt("Count", &mog.count, 1, 10)) {
+        if (mog.count < 1)
+          mog.count = 1;
+        if (mog.count > 10)
+          mog.count = 10;
+        mixture_changed = true;
+      }
+
+      // Per-Gaussian controls
+      for (int i = 0; i < mog.count; ++i) {
+        ImGui::PushID(i);
+        ImGui::Text("Gaussian %d", i);
+        ImGui::Separator();
+        // Mean in [-1, 1]
+        if (ImGui::DragFloat2("Mean", &mog.g[i].mean.x, 0.01f, -1.0f, 1.0f,
+                              "%.3f")) {
+          mixture_changed = true;
+        }
+        // Sigma > 0, reasonable range
+        if (ImGui::DragFloat2("Sigma", &mog.g[i].sigma.x, 0.001f, 0.005f, 1.0f,
+                              "%.4f")) {
+          mixture_changed = true;
+        }
+        // Clamp sigma to positive minimum to avoid degenerate PDFs
+        mog.g[i].sigma.x =
+            mog.g[i].sigma.x < 0.001f ? 0.001f : mog.g[i].sigma.x;
+        mog.g[i].sigma.y =
+            mog.g[i].sigma.y < 0.001f ? 0.001f : mog.g[i].sigma.y;
+        ImGui::PopID();
+      }
+
+      ImGui::SeparatorText("Simulation");
+      ImGui::SliderFloat("dt", &dt, 0.000001f, 0.01f, "%.6f", ImGuiSliderFlags_Logarithmic);
+
+      ImGui::SeparatorText("View");
+      ImGui::DragFloat2("Center", &viewCenter.x, 0.01f, -10.0f, 10.0f, "%.3f");
+      ImGui::SliderFloat("Scale", &viewScale, 0.01f, 10.0f, "%.3f", ImGuiSliderFlags_Logarithmic);
+    }
+    ImGui::End();
+
+    if (mixture_changed) {
+      mog.UpdatePeak();
+      simulation.SetMixture(mog);
+      distributionRenderer.SetMixture(mog);
+      estimatedDistributionRenderer.SetMixture(mog);
+    }
+
+    simulation.SetDt(dt);
     simulation.Update();
 
     glClearColor(0, 0, 0, 0);
@@ -150,7 +207,8 @@ int main(int, char **) {
 
     // Rendering
     {
-      const Viewport particleViewport = {{-1.0, -1.0}, {1.0, 1.0}};
+      const Viewport particleViewport = {viewCenter - glm::vec2(viewScale),
+                                         viewCenter + glm::vec2(viewScale)};
       const Viewport pixelViewport = {{0, 0},
                                       {io.DisplaySize.x / 2, io.DisplaySize.y}};
       const Viewport particleViewportCorretAspect =
@@ -166,7 +224,8 @@ int main(int, char **) {
     }
 
     {
-      const Viewport particleViewport = {{-1.0, -1.0}, {1.0, 1.0}};
+      const Viewport particleViewport = {viewCenter - glm::vec2(viewScale),
+                                         viewCenter + glm::vec2(viewScale)};
       const Viewport pixelViewport = {{io.DisplaySize.x / 2, 0},
                                       {io.DisplaySize.x, io.DisplaySize.y}};
       const Viewport particleViewportCorretAspect =
