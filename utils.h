@@ -10,10 +10,10 @@ struct Viewport {
   glm::vec2 pmin;
   glm::vec2 pmax;
 
-  float Width() { return pmax.x - pmin.x; }
-  float Height() { return pmax.y - pmin.y; }
+  float Width() const { return pmax.x - pmin.x; }
+  float Height() const { return pmax.y - pmin.y; }
 
-  glm::vec2 Center() { return 0.5f * (pmin + pmax); }
+  glm::vec2 Center() const { return 0.5f * (pmin + pmax); }
 };
 
 static Viewport EnforceAspectRatio(Viewport particleViewport,

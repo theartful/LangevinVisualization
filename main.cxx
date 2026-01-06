@@ -184,11 +184,13 @@ int main(int, char **) {
       }
 
       ImGui::SeparatorText("Simulation");
-      ImGui::SliderFloat("dt", &dt, 0.000001f, 0.01f, "%.6f", ImGuiSliderFlags_Logarithmic);
+      ImGui::SliderFloat("dt", &dt, 0.000001f, 0.01f, "%.6f",
+                         ImGuiSliderFlags_Logarithmic);
 
       ImGui::SeparatorText("View");
       ImGui::DragFloat2("Center", &viewCenter.x, 0.01f, -10.0f, 10.0f, "%.3f");
-      ImGui::SliderFloat("Scale", &viewScale, 0.01f, 10.0f, "%.3f", ImGuiSliderFlags_Logarithmic);
+      ImGui::SliderFloat("Scale", &viewScale, 0.01f, 10.0f, "%.3f",
+                         ImGuiSliderFlags_Logarithmic);
     }
     ImGui::End();
 
@@ -197,6 +199,39 @@ int main(int, char **) {
       simulation.SetMixture(mog);
       distributionRenderer.SetMixture(mog);
       estimatedDistributionRenderer.SetMixture(mog);
+    }
+
+    // Mouse drag to pan view center (when not interacting with UI)
+    {
+      const Viewport basePV = {viewCenter - glm::vec2(viewScale),
+                               viewCenter + glm::vec2(viewScale)};
+      const Viewport halfPixels = {{0, 0},
+                                   {io.DisplaySize.x / 2.0f, io.DisplaySize.y}};
+      const Viewport pv = EnforceAspectRatio(basePV, halfPixels);
+      const float sx = pv.Width() / halfPixels.Width();
+      const float sy = pv.Height() / halfPixels.Height();
+
+      if (!io.WantCaptureMouse && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+        ImVec2 d = io.MouseDelta;
+        if ((d.x != 0.0f) || (d.y != 0.0f)) {
+          viewCenter.x -= d.x * sx;
+          viewCenter.y += d.y * sy; // screen Y down -> world up
+        }
+      }
+    }
+
+    // Ctrl + Mouse Wheel to zoom (adjust viewScale)
+    if (!io.WantCaptureMouse && io.KeyCtrl && io.MouseWheel != 0.0f) {
+      const float zoomStep = 1.1f; // multiplicative step per wheel notch
+      if (io.MouseWheel > 0.0f) {
+        viewScale /= zoomStep; // zoom in
+      } else {
+        viewScale *= zoomStep; // zoom out
+      }
+      if (viewScale < 0.01f)
+        viewScale = 0.01f;
+      if (viewScale > 10.0f)
+        viewScale = 10.0f;
     }
 
     simulation.SetDt(dt);
