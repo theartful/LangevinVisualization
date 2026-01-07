@@ -75,6 +75,7 @@ static void Frame(void *arg) {
   ImGui::NewFrame();
 
   bool mixture_changed = false;
+  ImGui::SetNextWindowSize(ImVec2(250.0f, 0.0f), ImGuiCond_Appearing);
   if (ImGui::Begin("Controls")) {
     ImGui::SeparatorText("Mixture");
     if (ImGui::SliderInt("Count", &s->mog.count, 1, 10)) {
@@ -106,11 +107,18 @@ static void Frame(void *arg) {
     ImGui::SeparatorText("Simulation");
     ImGui::SliderFloat("dt", &s->dt, 0.000001f, 0.01f, "%.6f",
                        ImGuiSliderFlags_Logarithmic);
+    if (ImGui::Button("Reset Particles")) {
+      s->simulation.ResetParticles();
+    }
 
     ImGui::SeparatorText("View");
     ImGui::DragFloat2("Center", &s->viewCenter.x, 0.01f, -10.0f, 10.0f, "%.3f");
     ImGui::SliderFloat("Scale", &s->viewScale, 0.01f, 10.0f, "%.3f",
                        ImGuiSliderFlags_Logarithmic);
+    if (ImGui::Button("Reset View")) {
+      s->viewCenter = glm::vec2(0.0f, 0.0f);
+      s->viewScale = 1.0f;
+    }
   }
   ImGui::End();
 

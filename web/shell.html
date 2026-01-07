@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Langevin</title>
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #000; }
+    #canvas { width: 100vw; height: 100vh; display: block; outline: none; background: #000; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+  <script>
+    var Module = {
+      preRun: [],
+      postRun: [],
+      canvas: (function() { return document.getElementById('canvas'); })(),
+      print: function() { console.log.apply(console, arguments); },
+      printErr: function() { console.error.apply(console, arguments); },
+      setStatus: function(text) { /* optional: hook for status */ },
+    };
+  </script>
+  {{{ SCRIPT }}}
+</body>
+</html>

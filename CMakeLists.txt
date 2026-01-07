@@ -104,6 +104,7 @@ if (EMSCRIPTEN)
       -sEXCEPTION_DEBUG=1
       -sASSERTIONS=2
       -sUSE_SDL=2
+      --shell-file ${CMAKE_SOURCE_DIR}/web/shell.html
   )
   target_link_libraries(Langevin
       glm::glm
@@ -113,6 +114,14 @@ if (EMSCRIPTEN)
   target_compile_options(Langevin PRIVATE ${EM_COMPILE_FLAGS})
   target_link_options(imgui PRIVATE ${EM_LINK_FLAGS})
   target_compile_options(imgui PRIVATE ${EM_COMPILE_FLAGS})
+
+  # Install generated html/js/wasm
+  install(FILES
+      ${CMAKE_CURRENT_BINARY_DIR}/Langevin.html
+      ${CMAKE_CURRENT_BINARY_DIR}/Langevin.js
+      ${CMAKE_CURRENT_BINARY_DIR}/Langevin.wasm
+      DESTINATION .
+  )
 else()
   target_link_libraries(Langevin
       OpenGL::OpenGL

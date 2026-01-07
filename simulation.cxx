@@ -162,6 +162,20 @@ void Simulation::Update() {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void Simulation::ResetParticles() {
+  // Re-upload initial CPU positions into both ping-pong textures and reset step
+  glBindTexture(GL_TEXTURE_2D, m_colors[0]);
+  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, kWidth, kHeight, GL_RG, GL_FLOAT,
+                  glm::value_ptr(m_particles[0]));
+
+  glBindTexture(GL_TEXTURE_2D, m_colors[1]);
+  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, kWidth, kHeight, GL_RG, GL_FLOAT,
+                  glm::value_ptr(m_particles[0]));
+
+  glBindTexture(GL_TEXTURE_2D, 0);
+  m_step = 0;
+}
+
 Simulation::~Simulation() {
   glDeleteVertexArrays(1, &m_quadVAO);
   glDeleteBuffers(1, &m_quadVBO);

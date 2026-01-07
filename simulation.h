@@ -14,6 +14,7 @@ public:
   void Update();
   void SetMixture(const MixtureOfGaussians &m);
   void SetDt(float dt);
+  void ResetParticles();
 
   size_t Width();
   size_t Height();
