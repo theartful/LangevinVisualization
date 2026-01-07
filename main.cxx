@@ -1,3 +1,9 @@
+#ifndef EMSCRIPTEN
+#include <GL/glew.h>
+#endif
+#include <SDL.h>
+#include <cstdio>
+
 #include "distribution_renderer.h"
 #include "estimated_distribution_renderer.h"
 #include "imgui.h"
@@ -7,19 +13,11 @@
 #include "particle_renderer.h"
 #include "simulation.h"
 
-#ifndef EMSCRIPTEN
-#include <GL/glew.h>
-#else
+#ifdef EMSCRIPTEN
 extern "C" {
 void emscripten_set_main_loop_arg(void (*)(void *), void *, int, int);
 }
 #endif
-#include <SDL.h>
-#ifndef EMSCRIPTEN
-#include <SDL_opengl.h>
-#endif
-#include <cmath>
-#include <stdio.h>
 
 struct AppState {
   SDL_Window *window = nullptr;

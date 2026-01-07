@@ -70,7 +70,7 @@ void seed(uint frame_id) {
 }
 
 vec2 sample_gaussian(vec2 u, float mean, float standardDeviation) {
-  float a = standardDeviation * sqrt(-2.0f * log(1.0f - u.x));
+  float a = standardDeviation * sqrt(-2.0 * log(1.0 - u.x));
   float b = TWO_PI * u.y;
 
   return vec2(cos(b), sin(b)) * a + mean;
@@ -80,16 +80,24 @@ vec2 gaussian_score(vec2 pos, vec2 mean, vec2 sigma) {
   return (mean - pos) / (sigma * sigma);
 }
 
-float gaussian(vec2 pos, vec2 mean, vec2 sigma) {
+float gaussian(vec2 pos, vec2 mean, vec2 sigma, float exponent_offset) {
   vec2 d = (pos - mean) / sigma;
-  return exp(-0.5 * dot(d, d)) / (TWO_PI * sigma.x * sigma.y);
+  return exp(-0.5 * dot(d, d) + exponent_offset) / (TWO_PI * sigma.x * sigma.y);
 }
 
 vec2 mixture_of_gaussian_score(vec2 pos) {
   float wsum = 0.0;
   vec2 num = vec2(0.0);
+
+  float max_e = -1e30;
   for (int i = 0; i < uCount; ++i) {
-    float w = gaussian(pos, uGaussians[i].mean, uGaussians[i].sigma);
+    vec2 d = (pos - uGaussians[i].mean) / uGaussians[i].sigma;
+    float e = -0.5 * dot(d, d);
+    max_e = max(max_e, e);
+  }
+
+  for (int i = 0; i < uCount; ++i) {
+    float w = gaussian(pos, uGaussians[i].mean, uGaussians[i].sigma, -max_e);
     num += w * gaussian_score(pos, uGaussians[i].mean, uGaussians[i].sigma);
     wsum += w;
   }
@@ -104,7 +112,7 @@ void main() {
   float dt = uDt;
 
   vec2 u = vec2(lcg_randomf(), lcg_randomf());
-  vec2 w = vec2(sample_gaussian(u, 0.0, 1.0));
+  vec2 w = sample_gaussian(u, 0.0, 1.0);
 
   ParticlePosition =
       pos + dt * mixture_of_gaussian_score(pos) + sqrt(2.0 * dt) * w;
