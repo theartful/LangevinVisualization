@@ -1,6 +1,10 @@
 #pragma once
 
+#ifdef EMSCRIPTEN
+#include <GLES3/gl3.h>
+#else
 #include <GL/glew.h>
+#endif
 #include <glm/glm.hpp>
 
 #include <stdexcept>
@@ -40,7 +44,7 @@ static Viewport EnforceAspectRatio(Viewport particleViewport,
   return result;
 }
 
-static void CheckCompilationResult(GLuint shader) {
+static void CheckCompilationResult(GLuint shader, const char *name) {
   int success;
   glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
   if (success != GL_TRUE) {
@@ -50,7 +54,8 @@ static void CheckCompilationResult(GLuint shader) {
       std::string log;
       log.resize(bufflen + 1);
       glGetShaderInfoLog(shader, bufflen, 0, log.data());
-      throw std::runtime_error(log);
+      throw std::runtime_error(std::string("Error compiling shader ") + name +
+                               ": " + log);
     }
   }
 }

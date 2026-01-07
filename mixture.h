@@ -36,8 +36,7 @@ struct MixtureOfGaussians {
         mixture_at_mu += g[j].Evaluate(mu);
       }
       mixture_at_mu /= static_cast<float>(count);
-      if (mixture_at_mu > max_val)
-        max_val = mixture_at_mu;
+      max_val = std::max(max_val, mixture_at_mu);
     }
     peak = max_val;
   }

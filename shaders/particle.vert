@@ -1,4 +1,5 @@
-#version 330
+#version 300 es
+precision highp float;
 
 uniform sampler2D uParticles;
 uniform int uParticlesWidth;
@@ -13,7 +14,7 @@ void main() {
     vec2 pos = texelFetch(uParticles, pixel, 0).xy;
     pos = 2.0 * (pos - uMin) / (uMax - uMin) - 1.0;
 
-    gl_PointSize = 1;
+    gl_PointSize = 1.0;
     gl_Position = vec4(pos, 0.0, 1.0);
 }
 

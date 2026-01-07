@@ -31,7 +31,7 @@ DistributionRenderer::DistributionRenderer() {
     const GLsizei len = DistributionVert_len;
     glShaderSource(m_vertShader, 1, &src, &len);
     glCompileShader(m_vertShader);
-    CheckCompilationResult(m_vertShader);
+    CheckCompilationResult(m_vertShader, "distribution.vert");
   }
 
   {
@@ -40,7 +40,7 @@ DistributionRenderer::DistributionRenderer() {
     const GLsizei len = DistributionFrag_len;
     glShaderSource(m_fragShader, 1, &src, &len);
     glCompileShader(m_fragShader);
-    CheckCompilationResult(m_fragShader);
+    CheckCompilationResult(m_fragShader, "distribution.frag");
   }
 
   m_program = glCreateProgram();
@@ -79,7 +79,9 @@ void DistributionRenderer::Render(Viewport particleViewport,
   glViewport(pixelViewport.pmin.x, pixelViewport.pmin.y, pixelViewport.Width(),
              pixelViewport.Height());
 
+#ifndef EMSCRIPTEN
   glEnable(GL_PROGRAM_POINT_SIZE);
+#endif
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

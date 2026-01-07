@@ -1,10 +1,21 @@
 cmake_minimum_required(VERSION 3.20)
 project(Langevin)
 
-find_package(OpenGL REQUIRED)
-find_package(GLEW REQUIRED)
-find_package(SDL2 REQUIRED)
-find_package(glm REQUIRED)
+if (NOT EMSCRIPTEN)
+  # Emscripten: use SDL2 via ports, WebGL2 via flags
+  find_package(OpenGL REQUIRED)
+  find_package(GLEW REQUIRED)
+  find_package(SDL2 REQUIRED)
+endif()
+
+include(FetchContent)
+FetchContent_Declare(
+    glm
+    GIT_REPOSITORY  https://github.com/g-truc/glm.git
+    GIT_TAG         1.0.3
+    GIT_SHALLOW     1
+)
+FetchContent_MakeAvailable(glm)
 
 add_library(imgui
     third_party/imgui/imgui.cpp
@@ -16,7 +27,11 @@ add_library(imgui
     third_party/imgui/backends/imgui_impl_opengl3.cpp
 )
 
-target_link_libraries(imgui PUBLIC OpenGL::OpenGL SDL2::SDL2)
+if (EMSCRIPTEN)
+  target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_ES3)
+else()
+  target_link_libraries(imgui PUBLIC OpenGL::OpenGL SDL2::SDL2)
+endif()
 target_include_directories(imgui PUBLIC third_party/imgui/ third_party/imgui/backends)
 
 add_custom_command(
@@ -71,17 +86,42 @@ add_executable(Langevin
     ${CMAKE_BINARY_DIR}/shaders/distribution.vert.h
     ${CMAKE_BINARY_DIR}/shaders/accumulator.frag.h
     ${CMAKE_BINARY_DIR}/shaders/accumulator.vert.h
-   ${CMAKE_BINARY_DIR}/shaders/estimated_distribution.frag.h
-   ${CMAKE_BINARY_DIR}/shaders/estimated_distribution.vert.h
+    ${CMAKE_BINARY_DIR}/shaders/estimated_distribution.frag.h
+    ${CMAKE_BINARY_DIR}/shaders/estimated_distribution.vert.h
 )
 
-target_link_libraries(Langevin
-    OpenGL::OpenGL
-    GLEW::GLEW
-    SDL2::SDL2
-    glm::glm
-    imgui
-)
+if (EMSCRIPTEN)
+  set(CMAKE_EXECUTABLE_SUFFIX ".html")
+  set(EM_COMPILE_FLAGS
+      -sUSE_SDL=2
+      -fwasm-exceptions
+  )
+  set(EM_LINK_FLAGS
+      -sMIN_WEBGL_VERSION=2
+      -sMAX_WEBGL_VERSION=2
+      -sALLOW_MEMORY_GROWTH=1
+      -sGL_SUPPORT_SIMPLE_ENABLE_EXTENSIONS=1
+      -sEXCEPTION_DEBUG=1
+      -sASSERTIONS=2
+      -sUSE_SDL=2
+  )
+  target_link_libraries(Langevin
+      glm::glm
+      imgui
+  )
+  target_link_options(Langevin PRIVATE ${EM_LINK_FLAGS})
+  target_compile_options(Langevin PRIVATE ${EM_COMPILE_FLAGS})
+  target_link_options(imgui PRIVATE ${EM_LINK_FLAGS})
+  target_compile_options(imgui PRIVATE ${EM_COMPILE_FLAGS})
+else()
+  target_link_libraries(Langevin
+      OpenGL::OpenGL
+      GLEW::GLEW
+      SDL2::SDL2
+      glm::glm
+      imgui
+  )
+endif()
 
 target_include_directories(Langevin PRIVATE
     ${CMAKE_BINARY_DIR}/shaders

@@ -1,4 +1,5 @@
-#version 330
+#version 300 es
+precision highp float;
 
 layout(location = 0) out vec2 ParticlePosition;
 
@@ -103,8 +104,8 @@ void main() {
   float dt = uDt;
 
   vec2 u = vec2(lcg_randomf(), lcg_randomf());
-  vec2 w = vec2(sample_gaussian(u, 0, 1.0));
+  vec2 w = vec2(sample_gaussian(u, 0.0, 1.0));
 
   ParticlePosition =
-      pos + dt * mixture_of_gaussian_score(pos) + sqrt(2 * dt) * w;
+      pos + dt * mixture_of_gaussian_score(pos) + sqrt(2.0 * dt) * w;
 }

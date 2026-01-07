@@ -4,8 +4,8 @@
 #include "accumulator.vert.h"
 #include "estimated_distribution.frag.h"
 #include "estimated_distribution.vert.h"
-#include "utils.h"
 #include "mixture.h"
+#include "utils.h"
 
 static constexpr size_t kWidth = 200;
 static constexpr size_t kHeight = 200;
@@ -27,7 +27,7 @@ void EstimatedDistributionRenderer::CreateAccumulatorProgram() {
     const GLsizei len = AccumulatorVert_len;
     glShaderSource(m_accumVertShader, 1, &src, &len);
     glCompileShader(m_accumVertShader);
-    CheckCompilationResult(m_accumVertShader);
+    CheckCompilationResult(m_accumVertShader, "accumulator.vert");
   }
 
   {
@@ -36,7 +36,7 @@ void EstimatedDistributionRenderer::CreateAccumulatorProgram() {
     const GLsizei len = AccumulatorFrag_len;
     glShaderSource(m_accumFragShader, 1, &src, &len);
     glCompileShader(m_accumFragShader);
-    CheckCompilationResult(m_accumFragShader);
+    CheckCompilationResult(m_accumFragShader, "accumulator.frag");
   }
 
   m_accumProgram = glCreateProgram();
@@ -112,7 +112,7 @@ void EstimatedDistributionRenderer::CreateRendererProgram() {
     const GLsizei len = EstimatedDistributionVert_len;
     glShaderSource(m_renderVertShader, 1, &src, &len);
     glCompileShader(m_renderVertShader);
-    CheckCompilationResult(m_renderVertShader);
+    CheckCompilationResult(m_renderVertShader, "estimated_distribution.vert");
   }
 
   {
@@ -121,7 +121,7 @@ void EstimatedDistributionRenderer::CreateRendererProgram() {
     const GLsizei len = EstimatedDistributionFrag_len;
     glShaderSource(m_renderFragShader, 1, &src, &len);
     glCompileShader(m_renderFragShader);
-    CheckCompilationResult(m_renderFragShader);
+    CheckCompilationResult(m_renderFragShader, "estimated_distribution.frag");
   }
 
   m_renderProgram = glCreateProgram();

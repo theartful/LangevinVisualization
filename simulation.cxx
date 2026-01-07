@@ -1,9 +1,9 @@
 #include "simulation.h"
 
+#include "mixture.h"
 #include "simulation.frag.h"
 #include "simulation.vert.h"
 #include "utils.h"
-#include "mixture.h"
 
 #include <cstdlib>
 #include <stdexcept>
@@ -41,7 +41,7 @@ Simulation::Simulation() : m_step(0), m_dt(0.00004f) {
     const GLsizei len = SimulationVert_len;
     glShaderSource(m_vertShader, 1, &src, &len);
     glCompileShader(m_vertShader);
-    CheckCompilationResult(m_vertShader);
+    CheckCompilationResult(m_vertShader, "simulation.vert");
   }
 
   {
@@ -50,7 +50,7 @@ Simulation::Simulation() : m_step(0), m_dt(0.00004f) {
     const GLsizei len = SimulationFrag_len;
     glShaderSource(m_fragShader, 1, &src, &len);
     glCompileShader(m_fragShader);
-    CheckCompilationResult(m_fragShader);
+    CheckCompilationResult(m_fragShader, "simulation.frag");
   }
 
   m_program = glCreateProgram();
@@ -71,7 +71,8 @@ Simulation::Simulation() : m_step(0), m_dt(0.00004f) {
   // Create Mixture UBO
   glGenBuffers(1, &m_mogUBO);
   glBindBuffer(GL_UNIFORM_BUFFER, m_mogUBO);
-  glBufferData(GL_UNIFORM_BUFFER, sizeof(MixtureOfGaussians), nullptr, GL_DYNAMIC_DRAW);
+  glBufferData(GL_UNIFORM_BUFFER, sizeof(MixtureOfGaussians), nullptr,
+               GL_DYNAMIC_DRAW);
   glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_mogUBO);
   glBindBuffer(GL_UNIFORM_BUFFER, 0);
 

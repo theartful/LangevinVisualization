@@ -1,4 +1,5 @@
-#version 330
+#version 300 es
+precision highp float;
 
 layout(location = 0) out vec4 FragColor;
 in vec2 aUV;
@@ -29,7 +30,7 @@ vec3 colormap(float x) {
 
 void main() {
   float numParticles = texture(uAccum, aUV).r;
-  float prob = numParticles / (uNumParticles * uArea);
+  float prob = numParticles / (float(uNumParticles) * uArea);
 
   // Gamma correction style
   float t = pow(prob / max(uPeak, 1e-8), 0.5);
