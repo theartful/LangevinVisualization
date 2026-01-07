@@ -115,12 +115,29 @@ if (EMSCRIPTEN)
   target_link_options(imgui PRIVATE ${EM_LINK_FLAGS})
   target_compile_options(imgui PRIVATE ${EM_COMPILE_FLAGS})
 
-  # Install generated html/js/wasm
+  # Install generated html/js/wasm (optional install step)
   install(FILES
       ${CMAKE_CURRENT_BINARY_DIR}/Langevin.html
       ${CMAKE_CURRENT_BINARY_DIR}/Langevin.js
       ${CMAKE_CURRENT_BINARY_DIR}/Langevin.wasm
       DESTINATION .
+  )
+
+  # Docs deployment target: copy to repo docs/ for GitHub Pages
+  add_custom_target(deploy-docs
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/docs
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${CMAKE_CURRENT_BINARY_DIR}/Langevin.js
+            ${CMAKE_SOURCE_DIR}/docs/Langevin.js
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${CMAKE_CURRENT_BINARY_DIR}/Langevin.wasm
+            ${CMAKE_SOURCE_DIR}/docs/Langevin.wasm
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${CMAKE_CURRENT_BINARY_DIR}/Langevin.html
+            ${CMAKE_SOURCE_DIR}/docs/index.html
+    COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_SOURCE_DIR}/docs/.nojekyll
+    DEPENDS Langevin
+    COMMENT "Copying WASM build outputs to docs/ for GitHub Pages"
   )
 else()
   target_link_libraries(Langevin
